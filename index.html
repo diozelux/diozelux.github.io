@@ -10,12 +10,11 @@
   <main>
     <header>
       <h1>MBTI 선택하고 게임 추천받기</h1>
-      <p>5가지 지표를 선택해 나에게 딱 맞는 게임 추천을 받아보세요.</p>
+      <p>4가지 지표를 선택해 나에게 딱 맞는 게임 추천을 받아보세요.</p>
     </header>
 
     <div id="selection-display" aria-live="polite">
       <span id="mbti-core">_ _ _ _</span>
-      <span id="mbti-identity">- _</span>
     </div>
 
     <div class="step-indicator" id="step-indicator" aria-hidden="true"></div>
@@ -31,6 +30,10 @@
     </div>
 
     <p id="description"></p>
+
+    <div class="navigation">
+      <button type="button" id="next-button" disabled>다음</button>
+    </div>
 
     <div class="reset-area">
       <button type="button" id="reset-button">다시 선택하기</button>
@@ -106,23 +109,6 @@
             helper: '순간의 재미와 즉흥적인 선택에 설레요.'
           }
         ]
-      },
-      {
-        code: 'AT',
-        title: '성향 (A vs T)',
-        description: '자신감 있고 안정적인 편인가요, 아니면 세심하고 섬세한 편인가요?',
-        options: [
-          {
-            value: 'A',
-            label: 'A - 자신감 (Assertive)',
-            helper: '과감하게 도전하며 분위기를 주도해요.'
-          },
-          {
-            value: 'T',
-            label: 'T - 신중함 (Turbulent)',
-            helper: '상황을 꼼꼼히 살피며 팀을 세심하게 챙겨요.'
-          }
-        ]
       }
     ];
 
@@ -135,9 +121,9 @@
     const description = document.getElementById('description');
     const leftButton = document.getElementById('choice-left');
     const rightButton = document.getElementById('choice-right');
+    const nextButton = document.getElementById('next-button');
     const resetButton = document.getElementById('reset-button');
     const coreDisplay = document.getElementById('mbti-core');
-    const identityDisplay = document.getElementById('mbti-identity');
 
     function updateIndicators() {
       stepIndicator.innerHTML = '';
@@ -152,26 +138,22 @@
 
     function updateDisplay() {
       const filled = ['_', '_', '_', '_'];
-      const identity = ['_'];
 
       selected.forEach((value, index) => {
         if (index < 4) {
           filled[index] = value;
-        } else if (index === 4) {
-          identity[0] = value;
         }
       });
 
       coreDisplay.textContent = filled.join(' ');
-      identityDisplay.textContent = `- ${identity.join(' ')}`;
     }
 
     function showStep() {
       if (stepIndex >= dichotomies.length) {
-        const mbtiCore = selected.slice(0, 4).join('');
-        const identity = selected[4];
-        const type = `${mbtiCore}-${identity}`;
-        window.location.href = `results/${type}.html`;
+        const mbtiType = selected.slice(0, 4).join('');
+        if (mbtiType.length === 4) {
+          window.location.href = `results/${mbtiType}.html`;
+        }
         return;
       }
 
@@ -190,6 +172,9 @@
       description.textContent = '';
       updateIndicators();
       updateDisplay();
+      updateChoiceButtons();
+      nextButton.disabled = !selected[stepIndex];
+      nextButton.textContent = stepIndex === dichotomies.length - 1 ? '결과 보기' : '다음';
     }
 
     function handleChoice(event) {
@@ -197,21 +182,45 @@
       const helper = event.currentTarget.getAttribute('data-helper');
       selected[stepIndex] = value;
       description.textContent = helper;
-      stepIndex += 1;
       updateDisplay();
       updateIndicators();
-      setTimeout(showStep, 400);
+      updateChoiceButtons();
+      nextButton.disabled = false;
+    }
+
+    function updateChoiceButtons() {
+      const currentValue = selected[stepIndex];
+      [leftButton, rightButton].forEach(button => {
+        if (button.getAttribute('data-value') === currentValue) {
+          button.classList.add('selected');
+        } else {
+          button.classList.remove('selected');
+        }
+      });
+    }
+
+    function goToNextStep() {
+      if (!selected[stepIndex]) {
+        return;
+      }
+
+      stepIndex += 1;
+      updateIndicators();
+
+      showStep();
     }
 
     function resetSelection() {
       selected.length = 0;
       stepIndex = 0;
       description.textContent = '';
+      nextButton.disabled = true;
       showStep();
     }
 
     leftButton.addEventListener('click', handleChoice);
     rightButton.addEventListener('click', handleChoice);
+    nextButton.addEventListener('click', goToNextStep);
     resetButton.addEventListener('click', resetSelection);
 
     showStep();

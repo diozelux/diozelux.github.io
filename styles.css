@@ -59,11 +59,6 @@ header p {
   letter-spacing: 0.4em;
 }
 
-#selection-display span:last-child {
-  letter-spacing: normal;
-  margin-left: 16px;
-}
-
 .step-indicator {
   display: flex;
   justify-content: center;
@@ -121,10 +116,48 @@ header p {
   outline: none;
 }
 
+.choice-button.selected {
+  background: #5560ff;
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(85, 96, 255, 0.3);
+}
+
 #description {
   text-align: center;
   font-size: 16px;
   color: #4c4d63;
+}
+
+.navigation {
+  text-align: center;
+  margin-top: 24px;
+}
+
+#next-button {
+  border: none;
+  border-radius: 999px;
+  padding: 14px 32px;
+  background: #5560ff;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+#next-button:hover,
+#next-button:focus {
+  transform: translateY(-1px);
+  background: #3e49f5;
+  box-shadow: 0 16px 32px rgba(62, 73, 245, 0.35);
+  outline: none;
+}
+
+#next-button:disabled {
+  background: #c3c7f7;
+  color: #f5f6ff;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .reset-area {
