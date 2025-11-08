@@ -1,2 +1,2 @@
-# diozelux.github.io
-동호회 행사용 웹페이지 저장소
+# Doran
+동호회 박람회에서 MBTI별 추천 게임을 확인할 수 있는 html파일 생성용 리포지토리

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MBTI 선택하고 게임 추천받기</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <h1>MBTI 선택하고 게임 추천받기</h1>
+      <p>5가지 지표를 선택해 나에게 딱 맞는 게임 추천을 받아보세요.</p>
+    </header>
+
+    <div id="selection-display" aria-live="polite">
+      <span id="mbti-core">_ _ _ _</span>
+      <span id="mbti-identity">- _</span>
+    </div>
+
+    <div class="step-indicator" id="step-indicator" aria-hidden="true"></div>
+
+    <section id="question">
+      <h2 id="question-title"></h2>
+      <p id="question-description"></p>
+    </section>
+
+    <div class="choice-buttons">
+      <button class="choice-button" id="choice-left"></button>
+      <button class="choice-button" id="choice-right"></button>
+    </div>
+
+    <p id="description"></p>
+
+    <div class="reset-area">
+      <button type="button" id="reset-button">다시 선택하기</button>
+    </div>
+  </main>
+
+  <script>
+    const dichotomies = [
+      {
+        code: 'EI',
+        title: '에너지 방향 (E vs I)',
+        description: '새로운 사람들과의 만남에서 에너지를 얻나요, 아니면 혼자 있는 시간이 더 편안한가요?',
+        options: [
+          {
+            value: 'E',
+            label: 'E - 외향 (Extraversion)',
+            helper: '활발한 분위기 속에서 모두를 이끄는 것을 즐겨요.'
+          },
+          {
+            value: 'I',
+            label: 'I - 내향 (Introversion)',
+            helper: '잔잔하게 몰입하고 깊은 대화를 더 선호해요.'
+          }
+        ]
+      },
+      {
+        code: 'NS',
+        title: '정보 수집 (N vs S)',
+        description: '상상력과 가능성에 끌리나요, 아니면 지금 눈앞의 사실이 더 중요하나요?',
+        options: [
+          {
+            value: 'N',
+            label: 'N - 직관 (iNtuition)',
+            helper: '새로운 이야기와 세계관을 탐험하는 걸 좋아해요.'
+          },
+          {
+            value: 'S',
+            label: 'S - 감각 (Sensing)',
+            helper: '감각적으로 즐길 수 있는 구체적인 경험을 중시해요.'
+          }
+        ]
+      },
+      {
+        code: 'FT',
+        title: '의사결정 (F vs T)',
+        description: '결정을 내릴 때 감정과 조화를 중시하나요, 아니면 논리와 효율을 우선하나요?',
+        options: [
+          {
+            value: 'F',
+            label: 'F - 감정 (Feeling)',
+            helper: '함께 즐거운 시간을 보내며 분위기를 따뜻하게 만들어요.'
+          },
+          {
+            value: 'T',
+            label: 'T - 사고 (Thinking)',
+            helper: '전략적인 판단과 균형 잡힌 선택을 중시해요.'
+          }
+        ]
+      },
+      {
+        code: 'JP',
+        title: '생활양식 (J vs P)',
+        description: '계획적으로 진행하는 것을 선호하나요, 아니면 유연하게 흐름을 즐기나요?',
+        options: [
+          {
+            value: 'J',
+            label: 'J - 판단 (Judging)',
+            helper: '게임에서도 규칙을 지키고 목표를 향해 나아가요.'
+          },
+          {
+            value: 'P',
+            label: 'P - 인식 (Perceiving)',
+            helper: '순간의 재미와 즉흥적인 선택에 설레요.'
+          }
+        ]
+      },
+      {
+        code: 'AT',
+        title: '성향 (A vs T)',
+        description: '자신감 있고 안정적인 편인가요, 아니면 세심하고 섬세한 편인가요?',
+        options: [
+          {
+            value: 'A',
+            label: 'A - 자신감 (Assertive)',
+            helper: '과감하게 도전하며 분위기를 주도해요.'
+          },
+          {
+            value: 'T',
+            label: 'T - 신중함 (Turbulent)',
+            helper: '상황을 꼼꼼히 살피며 팀을 세심하게 챙겨요.'
+          }
+        ]
+      }
+    ];
+
+    const selected = [];
+    let stepIndex = 0;
+
+    const stepIndicator = document.getElementById('step-indicator');
+    const questionTitle = document.getElementById('question-title');
+    const questionDescription = document.getElementById('question-description');
+    const description = document.getElementById('description');
+    const leftButton = document.getElementById('choice-left');
+    const rightButton = document.getElementById('choice-right');
+    const resetButton = document.getElementById('reset-button');
+    const coreDisplay = document.getElementById('mbti-core');
+    const identityDisplay = document.getElementById('mbti-identity');
+
+    function updateIndicators() {
+      stepIndicator.innerHTML = '';
+      dichotomies.forEach((_, index) => {
+        const span = document.createElement('span');
+        if (index <= stepIndex - 1) {
+          span.classList.add('active');
+        }
+        stepIndicator.appendChild(span);
+      });
+    }
+
+    function updateDisplay() {
+      const filled = ['_', '_', '_', '_'];
+      const identity = ['_'];
+
+      selected.forEach((value, index) => {
+        if (index < 4) {
+          filled[index] = value;
+        } else if (index === 4) {
+          identity[0] = value;
+        }
+      });
+
+      coreDisplay.textContent = filled.join(' ');
+      identityDisplay.textContent = `- ${identity.join(' ')}`;
+    }
+
+    function showStep() {
+      if (stepIndex >= dichotomies.length) {
+        const mbtiCore = selected.slice(0, 4).join('');
+        const identity = selected[4];
+        const type = `${mbtiCore}-${identity}`;
+        window.location.href = `results/${type}.html`;
+        return;
+      }
+
+      const step = dichotomies[stepIndex];
+      questionTitle.textContent = step.title;
+      questionDescription.textContent = step.description;
+
+      leftButton.textContent = step.options[0].label;
+      leftButton.setAttribute('data-value', step.options[0].value);
+      leftButton.setAttribute('data-helper', step.options[0].helper);
+
+      rightButton.textContent = step.options[1].label;
+      rightButton.setAttribute('data-value', step.options[1].value);
+      rightButton.setAttribute('data-helper', step.options[1].helper);
+
+      description.textContent = '';
+      updateIndicators();
+      updateDisplay();
+    }
+
+    function handleChoice(event) {
+      const value = event.currentTarget.getAttribute('data-value');
+      const helper = event.currentTarget.getAttribute('data-helper');
+      selected[stepIndex] = value;
+      description.textContent = helper;
+      stepIndex += 1;
+      updateDisplay();
+      updateIndicators();
+      setTimeout(showStep, 400);
+    }
+
+    function resetSelection() {
+      selected.length = 0;
+      stepIndex = 0;
+      description.textContent = '';
+      showStep();
+    }
+
+    leftButton.addEventListener('click', handleChoice);
+    rightButton.addEventListener('click', handleChoice);
+    resetButton.addEventListener('click', resetSelection);
+
+    showStep();
+  </script>
+</body>
+</html>
