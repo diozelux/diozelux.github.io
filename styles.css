@@ -226,8 +226,12 @@ header p {
   font-size: 17px;
 }
 
-.results-card li strong {
+.results-card li .game-link {
   color: #5560ff;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .actions {
